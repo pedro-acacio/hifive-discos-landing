@@ -10,9 +10,10 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  Music2,
   Send,
   ExternalLink,
+  Play,
+  Pause,
 } from "lucide-react";
 
 /* ============================================================
@@ -43,12 +44,18 @@ import {
 // Paleta extraída diretamente da logo real (@hifivediscos): selo creme
 // com marca em preto. A página inteira usa só essas duas cores + tons
 // intermediários — igual à identidade visual deles.
+//
+// MODO CLARO/ESCURO AUTOMÁTICO: os valores abaixo apontam para variáveis
+// CSS (definidas no <style> dentro do componente App). O navegador troca
+// os valores reais sozinho, com base na preferência do sistema
+// operacional do visitante (prefers-color-scheme) — sem nenhum botão
+// ou seletor manual na página.
 const COLORS = {
-  ink: "#131110",      // preto da marca (mesmo tom do símbolo no selo)
-  inkSoft: "#1D1A17",  // variação do preto para cartões
-  paper: "#FFFBE0",    // creme exato do arquivo oficial da logo
-  paperDim: "#E6DFB8", // creme rebaixado, para estados hover/secundários
-  line: "rgba(255,251,224,0.14)",
+  ink: "var(--ink)",         // fundo principal (preto no escuro, creme no claro)
+  inkSoft: "var(--ink-soft)", // fundo dos cartões
+  paper: "var(--paper)",      // cor de destaque (creme no escuro, preto no claro)
+  paperDim: "var(--paper-dim)",
+  line: "rgba(var(--paper-rgb),0.14)",
 };
 
 const FONTS_IMPORT =
@@ -81,16 +88,18 @@ const NAV_LINKS = [
   { href: "#contato", label: "Contato" },
 ];
 
+// Cada gênero aponta pra um arquivo de áudio em /public/audio/.
+// Troque pelos arquivos reais (ver instruções no README).
 const CATALOG = [
-  { label: "Rock" },
-  { label: "MPB" },
-  { label: "Pop / Rock Nacional" },
-  { label: "Jazz & Blues" },
-  { label: "Soul, Funk, Disco" },
-  { label: "Trilhas Sonoras" },
-  { label: "Rap & Reggae" },
-  { label: "Pop" },
-  { label: "Novos / Lacrados" },
+  { label: "Rock", audio: "/audio/rock.mp3" },
+  { label: "MPB", audio: "/audio/mpb.mp3" },
+  { label: "Pop / Rock Nacional", audio: "/audio/pop-rock-nacional.mp3" },
+  { label: "Jazz & Blues", audio: "/audio/jazz-blues.mp3" },
+  { label: "Soul, Funk, Disco", audio: "/audio/soul-funk-disco.mp3" },
+  { label: "Trilhas Sonoras", audio: "/audio/trilhas-sonoras.mp3" },
+  { label: "Rap & Reggae", audio: "/audio/rap-reggae.mp3" },
+  { label: "Pop", audio: "/audio/pop.mp3" },
+  { label: "Novos / Lacrados", audio: "/audio/novos-lacrados.mp3" },
 ];
 
 const STATS = [
@@ -137,7 +146,91 @@ const HOURS = [
   { day: "Domingo e segunda", time: "Fechado" },
 ];
 
-/* ---------- Logo da Hifive (arquivo oficial) ---------- */
+/* ---------- Vinil (disco + braço/agulha) ----------
+   Componente visual reutilizável. `playing` controla o giro do disco
+   e a descida da agulha; `onClick` é opcional (clicar no disco). */
+function Vinyl({ playing, onClick, size = 300 }) {
+  const labelSize = Math.round(size * 0.36);
+  return (
+    <div className="relative mx-auto" style={{ width: size, height: size }}>
+      <div
+        onClick={onClick}
+        role={onClick ? "button" : undefined}
+        aria-label={onClick ? "Tocar disco" : undefined}
+        className="rounded-full mx-auto"
+        style={{
+          width: size,
+          height: size,
+          cursor: onClick ? "pointer" : "default",
+          background:
+            "repeating-radial-gradient(circle at center, #0c0b0a 0px, #0c0b0a 2px, #201d19 3px, #0c0b0a 4px)",
+          boxShadow: "0 30px 60px rgba(0,0,0,0.55)",
+          animation: playing ? "spin 3.2s linear infinite" : "none",
+        }}
+      >
+        <div
+          className="absolute rounded-full flex items-center justify-center"
+          style={{
+            width: labelSize,
+            height: labelSize,
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%,-50%)",
+            boxShadow: "inset 0 0 0 1px rgba(var(--ink-rgb),0.15)",
+          }}
+        >
+          <Logo size={Math.round(labelSize * 0.93)} />
+        </div>
+      </div>
+
+      {/* Braço / agulha — eixo fixo no canto do prato.
+          Parado: agulha levantada, fora do vinil.
+          Tocando: agulha desce e pousa sobre o disco. */}
+      <div
+        className="absolute rounded-full"
+        style={{
+          top: -size * 0.033,
+          right: size * 0.047,
+          width: size * 0.047,
+          height: size * 0.047,
+          background: "#3a352c",
+          boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
+          zIndex: 2,
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          top: -size * 0.02,
+          right: size * 0.06,
+          width: size * 0.373,
+          height: Math.max(5, size * 0.023),
+          background: "#3a352c",
+          borderRadius: 4,
+          transformOrigin: "100% 50%",
+          transform: playing ? "rotate(-42deg)" : "rotate(8deg)",
+          transition: "transform 0.7s cubic-bezier(0.4,0,0.2,1)",
+          boxShadow: "0 4px 10px rgba(0,0,0,0.4)",
+          zIndex: 1,
+        }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            left: -size * 0.02,
+            top: -size * 0.02,
+            width: size * 0.06,
+            height: size * 0.06,
+            borderRadius: "50%",
+            background: COLORS.paper,
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+
 function Logo({ size = 40, ring = false }) {
   return (
     <img
@@ -228,7 +321,7 @@ function GrooveProgress() {
   return (
     <div
       className="hidden lg:block fixed left-0 top-0 h-full z-40"
-      style={{ width: 3, background: "rgba(255,251,224,0.08)" }}
+      style={{ width: 3, background: "rgba(var(--paper-rgb),0.08)" }}
       aria-hidden="true"
     >
       <div
@@ -258,7 +351,7 @@ function Nav() {
     <header
       className="fixed top-0 left-0 right-0 z-50"
       style={{
-        background: solid ? "rgba(20,18,16,0.92)" : "transparent",
+        background: solid ? "rgba(var(--ink-rgb),0.92)" : "transparent",
         backdropFilter: solid ? "blur(10px)" : "none",
         borderBottom: solid ? `1px solid ${COLORS.line}` : "1px solid transparent",
         transition: "all 0.3s ease",
@@ -316,7 +409,7 @@ function Nav() {
       {open && (
         <div
           className="md:hidden px-6 pb-6 flex flex-col gap-4"
-          style={{ background: "rgba(20,18,16,0.98)" }}
+          style={{ background: "rgba(var(--ink-rgb),0.98)" }}
         >
           {NAV_LINKS.map((l) => (
             <a
@@ -351,7 +444,7 @@ function Hero() {
     <section
       id="top"
       className="relative pt-32 pb-20 px-6 overflow-hidden"
-      style={{ background: `radial-gradient(circle at 80% 10%, #241f18 0%, ${COLORS.ink} 55%)` }}
+      style={{ background: `radial-gradient(circle at 80% 10%, var(--hero-glow) 0%, ${COLORS.ink} 55%)` }}
     >
       <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-14 items-center">
         <Reveal>
@@ -380,7 +473,7 @@ function Hero() {
           </h1>
           <p
             className="mt-6 max-w-md"
-            style={{ color: "rgba(255,251,224,0.75)", fontFamily: "'Work Sans', sans-serif", fontSize: "1.05rem", lineHeight: 1.6 }}
+            style={{ color: "rgba(var(--paper-rgb),0.75)", fontFamily: "'Work Sans', sans-serif", fontSize: "1.05rem", lineHeight: 1.6 }}
           >
             Vinil garimpado a dedo, catálogo que vai do rock à MPB, e um bar
             que só liga o som quando a agulha já baixou. Um point só, dois
@@ -412,85 +505,13 @@ function Hero() {
           </div>
         </Reveal>
 
-        {/* Vinil interativo */}
+        {/* Vinil decorativo — o toca-discos funcional, com música por
+            gênero, fica na seção "O que toca por aqui" (Catálogo). */}
         <Reveal delay={0.15}>
-          <div className="relative mx-auto" style={{ width: 300, height: 300 }}>
-            <div
-              onClick={() => setPlaying((p) => !p)}
-              role="button"
-              aria-label="Tocar disco"
-              className="rounded-full mx-auto cursor-pointer"
-              style={{
-                width: 300,
-                height: 300,
-                background:
-                  "repeating-radial-gradient(circle at center, #0c0b0a 0px, #0c0b0a 2px, #201d19 3px, #0c0b0a 4px)",
-                boxShadow: "0 30px 60px rgba(0,0,0,0.55)",
-                animation: playing ? "spin 3.2s linear infinite" : "none",
-              }}
-            >
-              <div
-                className="absolute rounded-full flex items-center justify-center"
-                style={{
-                  width: 108,
-                  height: 108,
-                  top: "50%",
-                  left: "50%",
-                  transform: "translate(-50%,-50%)",
-                  boxShadow: "inset 0 0 0 1px rgba(19,17,16,0.15)",
-                }}
-              >
-                <Logo size={100} />
-              </div>
-            </div>
-
-            {/* Braço / agulha — eixo fixo no canto do prato.
-                Parado: agulha levantada, fora do vinil.
-                Tocando: agulha desce e pousa sobre o disco. */}
-            <div
-              className="absolute rounded-full"
-              style={{
-                top: -10,
-                right: 14,
-                width: 14,
-                height: 14,
-                background: "#3a352c",
-                boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
-                zIndex: 2,
-              }}
-            />
-            <div
-              style={{
-                position: "absolute",
-                top: -6,
-                right: 18,
-                width: 112,
-                height: 7,
-                background: "#3a352c",
-                borderRadius: 4,
-                transformOrigin: "100% 50%",
-                transform: playing ? "rotate(-42deg)" : "rotate(8deg)",
-                transition: "transform 0.7s cubic-bezier(0.4,0,0.2,1)",
-                boxShadow: "0 4px 10px rgba(0,0,0,0.4)",
-                zIndex: 1,
-              }}
-            >
-              <div
-                style={{
-                  position: "absolute",
-                  left: -6,
-                  top: -6,
-                  width: 18,
-                  height: 18,
-                  borderRadius: "50%",
-                  background: COLORS.paper,
-                }}
-              />
-            </div>
-          </div>
+          <Vinyl playing={playing} onClick={() => setPlaying((p) => !p)} size={300} />
           <p
             className="text-center mt-4 text-xs"
-            style={{ color: "rgba(255,251,224,0.5)", fontFamily: "'Work Sans', sans-serif" }}
+            style={{ color: "rgba(var(--paper-rgb),0.5)", fontFamily: "'Work Sans', sans-serif" }}
           >
             toque no disco para {playing ? "pausar" : "tocar"}
           </p>
@@ -523,7 +544,7 @@ function Sobre() {
         <Reveal delay={0.1}>
           <p
             style={{
-              color: "rgba(255,251,224,0.78)",
+              color: "rgba(var(--paper-rgb),0.78)",
               fontFamily: "'Work Sans', sans-serif",
               fontSize: "1.05rem",
               lineHeight: 1.75,
@@ -539,7 +560,7 @@ function Sobre() {
           <p
             className="mt-4"
             style={{
-              color: "rgba(255,251,224,0.6)",
+              color: "rgba(var(--paper-rgb),0.6)",
               fontFamily: "'Work Sans', sans-serif",
               fontSize: "0.98rem",
               lineHeight: 1.75,
@@ -556,6 +577,40 @@ function Sobre() {
 
 /* ---------- Catálogo ---------- */
 function Catalogo() {
+  const [activeIndex, setActiveIndex] = useState(null);
+  const [audioError, setAudioError] = useState(false);
+  const audioRef = useRef(null);
+
+  // Pausa o áudio se a pessoa sair da página com uma faixa tocando.
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) audioRef.current.pause();
+    };
+  }, []);
+
+  const playGenre = (i) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (activeIndex === i) {
+      audio.pause();
+      setActiveIndex(null);
+      return;
+    }
+
+    setAudioError(false);
+    audio.src = CATALOG[i].audio;
+    audio.currentTime = 0;
+    audio
+      .play()
+      .then(() => setActiveIndex(i))
+      .catch(() => {
+        // Arquivo ausente ou navegador bloqueou o autoplay.
+        setAudioError(true);
+        setActiveIndex(null);
+      });
+  };
+
   return (
     <section id="catalogo" className="py-24 px-6" style={{ background: COLORS.inkSoft }}>
       <div className="max-w-6xl mx-auto">
@@ -573,29 +628,68 @@ function Catalogo() {
           </h2>
           <p
             className="mt-3 max-w-xl"
-            style={{ color: "rgba(255,251,224,0.7)", fontFamily: "'Work Sans', sans-serif" }}
+            style={{ color: "rgba(var(--paper-rgb),0.7)", fontFamily: "'Work Sans', sans-serif" }}
           >
-            Catálogo dividido por estilo, do usado raro ao lançamento lacrado
-            — disponível na loja e no e-commerce.
+            Catálogo dividido por estilo, do usado raro ao lançamento lacrado.
+            Clique num gênero pra ouvir uma prévia enquanto garimpa.
           </p>
         </Reveal>
 
-        <div className="mt-10 grid sm:grid-cols-3 gap-4">
-          {CATALOG.map((c, i) => (
-            <Reveal key={c.label} delay={i * 0.05}>
-              <div
-                className="flex items-center gap-3 px-5 py-4 rounded-xl border"
-                style={{ borderColor: COLORS.line, background: "rgba(255,251,224,0.03)" }}
+        <div className="mt-10 grid md:grid-cols-[minmax(0,260px)_1fr] gap-10 items-center">
+          {/* Toca-discos */}
+          <Reveal>
+            <div className="flex flex-col items-center">
+              <Vinyl playing={activeIndex !== null} size={220} />
+              <p
+                className="text-center mt-4 text-sm min-h-[1.5em]"
+                style={{ color: COLORS.paper, fontFamily: "'Work Sans', sans-serif" }}
               >
-                <Music2 size={18} color={COLORS.paper} />
-                <span
-                  style={{ color: COLORS.paper, fontFamily: "'Work Sans', sans-serif", fontSize: "0.95rem" }}
+                {activeIndex !== null
+                  ? `Tocando: ${CATALOG[activeIndex].label}`
+                  : "Escolha um estilo ao lado"}
+              </p>
+              {audioError && (
+                <p
+                  className="text-center mt-1 text-xs"
+                  style={{ color: "rgba(var(--paper-rgb),0.5)", fontFamily: "'Work Sans', sans-serif" }}
                 >
-                  {c.label}
-                </span>
-              </div>
-            </Reveal>
-          ))}
+                  Prévia indisponível no momento.
+                </p>
+              )}
+              <audio ref={audioRef} onEnded={() => setActiveIndex(null)} />
+            </div>
+          </Reveal>
+
+          {/* Botões de gênero */}
+          <div className="grid sm:grid-cols-3 gap-4">
+            {CATALOG.map((c, i) => {
+              const isActive = activeIndex === i;
+              return (
+                <Reveal key={c.label} delay={i * 0.05}>
+                  <button
+                    onClick={() => playGenre(i)}
+                    className="w-full flex items-center gap-3 px-5 py-4 rounded-xl border text-left"
+                    style={{
+                      borderColor: isActive ? COLORS.paper : COLORS.line,
+                      background: isActive ? "rgba(var(--paper-rgb),0.1)" : "rgba(var(--paper-rgb),0.03)",
+                      transition: "background 0.25s ease, border-color 0.25s ease",
+                    }}
+                  >
+                    {isActive ? (
+                      <Pause size={18} color={COLORS.paper} />
+                    ) : (
+                      <Play size={18} color={COLORS.paper} />
+                    )}
+                    <span
+                      style={{ color: COLORS.paper, fontFamily: "'Work Sans', sans-serif", fontSize: "0.95rem" }}
+                    >
+                      {c.label}
+                    </span>
+                  </button>
+                </Reveal>
+              );
+            })}
+          </div>
         </div>
 
         <Reveal delay={0.3}>
@@ -650,7 +744,7 @@ function Diferenciais() {
                 </div>
                 <div
                   className="mt-1"
-                  style={{ color: "rgba(255,251,224,0.65)", fontFamily: "'Work Sans', sans-serif", fontSize: "0.9rem" }}
+                  style={{ color: "rgba(var(--paper-rgb),0.65)", fontFamily: "'Work Sans', sans-serif", fontSize: "0.9rem" }}
                 >
                   {s.label}
                 </div>
@@ -819,11 +913,11 @@ function Avaliacoes() {
             <Reveal key={i} delay={i * 0.08}>
               <div
                 className="p-6 rounded-xl border h-full"
-                style={{ borderColor: COLORS.line, background: "rgba(255,251,224,0.03)" }}
+                style={{ borderColor: COLORS.line, background: "rgba(var(--paper-rgb),0.03)" }}
               >
                 <p
                   style={{
-                    color: "rgba(255,251,224,0.8)",
+                    color: "rgba(var(--paper-rgb),0.8)",
                     fontFamily: "'Work Sans', sans-serif",
                     fontSize: "0.95rem",
                     lineHeight: 1.65,
@@ -867,7 +961,7 @@ function Localizacao() {
 
           <div className="mt-6 flex items-start gap-3">
             <MapPin size={20} color={COLORS.paper} className="mt-1 shrink-0" />
-            <p style={{ color: "rgba(255,251,224,0.8)", fontFamily: "'Work Sans', sans-serif" }}>
+            <p style={{ color: "rgba(var(--paper-rgb),0.8)", fontFamily: "'Work Sans', sans-serif" }}>
               {ADDRESS_LINE}
             </p>
           </div>
@@ -880,7 +974,7 @@ function Localizacao() {
                   <span style={{ color: COLORS.paper, fontFamily: "'Work Sans', sans-serif", width: 150 }}>
                     {h.day}
                   </span>
-                  <span style={{ color: "rgba(255,251,224,0.6)", fontFamily: "'Work Sans', sans-serif" }}>
+                  <span style={{ color: "rgba(var(--paper-rgb),0.6)", fontFamily: "'Work Sans', sans-serif" }}>
                     {h.time}
                   </span>
                 </div>
@@ -931,7 +1025,7 @@ function Contato() {
   };
 
   const inputStyle = {
-    background: "rgba(255,251,224,0.05)",
+    background: "rgba(var(--paper-rgb),0.05)",
     border: `1px solid ${COLORS.line}`,
     color: COLORS.paper,
     fontFamily: "'Work Sans', sans-serif",
@@ -954,7 +1048,7 @@ function Contato() {
           </h2>
           <p
             className="mt-3 max-w-sm"
-            style={{ color: "rgba(255,251,224,0.7)", fontFamily: "'Work Sans', sans-serif" }}
+            style={{ color: "rgba(var(--paper-rgb),0.7)", fontFamily: "'Work Sans', sans-serif" }}
           >
             Dúvida sobre um título, quer reservar uma mesa pra noite de show
             ou só quer saber se aquele disco chegou — manda mensagem.
@@ -1041,7 +1135,7 @@ function Contato() {
               Enviar pelo WhatsApp
               <Send size={16} />
             </button>
-            <p className="text-xs" style={{ color: "rgba(255,251,224,0.4)", fontFamily: "'Work Sans', sans-serif" }}>
+            <p className="text-xs" style={{ color: "rgba(var(--paper-rgb),0.4)", fontFamily: "'Work Sans', sans-serif" }}>
               Ao enviar, o WhatsApp abre com sua mensagem pronta pra disparar.
             </p>
           </form>
@@ -1064,7 +1158,7 @@ function Fachada() {
       <div
         className="absolute inset-0"
         style={{
-          background: `linear-gradient(0deg, ${COLORS.ink} 0%, rgba(19,17,16,0.35) 45%, rgba(19,17,16,0.1) 100%)`,
+          background: `linear-gradient(0deg, ${COLORS.ink} 0%, rgba(var(--ink-rgb),0.35) 45%, rgba(var(--ink-rgb),0.1) 100%)`,
         }}
       />
       <div className="absolute bottom-10 left-0 right-0 px-6 text-center">
@@ -1114,7 +1208,7 @@ function Footer() {
               key={l.href}
               href={l.href}
               className="text-sm"
-              style={{ color: "rgba(255,251,224,0.6)", fontFamily: "'Work Sans', sans-serif" }}
+              style={{ color: "rgba(var(--paper-rgb),0.6)", fontFamily: "'Work Sans', sans-serif" }}
             >
               {l.label}
             </a>
@@ -1127,7 +1221,7 @@ function Footer() {
             target="_blank"
             rel="noreferrer"
             className="w-9 h-9 rounded-full flex items-center justify-center"
-            style={{ background: "rgba(255,251,224,0.06)" }}
+            style={{ background: "rgba(var(--paper-rgb),0.06)" }}
             aria-label="Instagram"
           >
             <Instagram size={16} color={COLORS.paper} />
@@ -1137,7 +1231,7 @@ function Footer() {
             target="_blank"
             rel="noreferrer"
             className="w-9 h-9 rounded-full flex items-center justify-center"
-            style={{ background: "rgba(255,251,224,0.06)" }}
+            style={{ background: "rgba(var(--paper-rgb),0.06)" }}
             aria-label="WhatsApp"
           >
             <MessageCircle size={16} color={COLORS.paper} />
@@ -1149,10 +1243,10 @@ function Footer() {
         className="max-w-6xl mx-auto mt-10 pt-6 flex flex-col sm:flex-row justify-between gap-2"
         style={{ borderTop: `1px solid ${COLORS.line}` }}
       >
-        <span className="text-xs" style={{ color: "rgba(255,251,224,0.4)", fontFamily: "'Work Sans', sans-serif" }}>
+        <span className="text-xs" style={{ color: "rgba(var(--paper-rgb),0.4)", fontFamily: "'Work Sans', sans-serif" }}>
           © {new Date().getFullYear()} Hifive Discos e Bar. Todos os direitos reservados.
         </span>
-        <span className="text-xs" style={{ color: "rgba(255,251,224,0.4)", fontFamily: "'Work Sans', sans-serif" }}>
+        <span className="text-xs" style={{ color: "rgba(var(--paper-rgb),0.4)", fontFamily: "'Work Sans', sans-serif" }}>
           {ADDRESS_LINE}
         </span>
       </div>
@@ -1188,6 +1282,32 @@ export default function HifiveDiscosLanding() {
         ${FONTS_IMPORT}
         * { box-sizing: border-box; }
         html { scroll-behavior: smooth; }
+
+        /* Tema escuro (padrão) — igual ao selo da logo, só invertido */
+        :root {
+          --ink: #131110;
+          --ink-rgb: 19,17,16;
+          --ink-soft: #1D1A17;
+          --paper: #FFFBE0;
+          --paper-rgb: 255,251,224;
+          --paper-dim: #E6DFB8;
+          --hero-glow: #241f18;
+        }
+
+        /* Tema claro — segue automaticamente a preferência do sistema
+           operacional do visitante. Sem botão, sem seletor manual. */
+        @media (prefers-color-scheme: light) {
+          :root {
+            --ink: #FFFBE0;
+            --ink-rgb: 255,251,224;
+            --ink-soft: #F2EAC4;
+            --paper: #131110;
+            --paper-rgb: 19,17,16;
+            --paper-dim: #3A3530;
+            --hero-glow: #F3E4A8;
+          }
+        }
+
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
         @media (prefers-reduced-motion: reduce) {
