@@ -12,8 +12,6 @@ import {
   ChevronRight,
   Send,
   ExternalLink,
-  Play,
-  Pause,
 } from "lucide-react";
 
 /* ============================================================
@@ -88,18 +86,16 @@ const NAV_LINKS = [
   { href: "#contato", label: "Contato" },
 ];
 
-// Cada gênero aponta pra um arquivo de áudio em /public/audio/.
-// Troque pelos arquivos reais (ver instruções no README).
 const CATALOG = [
-  { label: "Rock", audio: "/audio/rock.mp3" },
-  { label: "MPB", audio: "/audio/mpb.mp3" },
-  { label: "Pop / Rock Nacional", audio: "/audio/pop-rock-nacional.mp3" },
-  { label: "Jazz & Blues", audio: "/audio/jazz-blues.mp3" },
-  { label: "Soul, Funk, Disco", audio: "/audio/soul-funk-disco.mp3" },
-  { label: "Trilhas Sonoras", audio: "/audio/trilhas-sonoras.mp3" },
-  { label: "Rap & Reggae", audio: "/audio/rap-reggae.mp3" },
-  { label: "Pop", audio: "/audio/pop.mp3" },
-  { label: "Novos / Lacrados", audio: "/audio/novos-lacrados.mp3" },
+  { label: "Rock" },
+  { label: "MPB" },
+  { label: "Pop / Rock Nacional" },
+  { label: "Jazz & Blues" },
+  { label: "Soul, Funk, Disco" },
+  { label: "Trilhas Sonoras" },
+  { label: "Rap & Reggae" },
+  { label: "Pop" },
+  { label: "Novos / Lacrados" },
 ];
 
 const STATS = [
@@ -577,40 +573,6 @@ function Sobre() {
 
 /* ---------- Catálogo ---------- */
 function Catalogo() {
-  const [activeIndex, setActiveIndex] = useState(null);
-  const [audioError, setAudioError] = useState(false);
-  const audioRef = useRef(null);
-
-  // Pausa o áudio se a pessoa sair da página com uma faixa tocando.
-  useEffect(() => {
-    return () => {
-      if (audioRef.current) audioRef.current.pause();
-    };
-  }, []);
-
-  const playGenre = (i) => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (activeIndex === i) {
-      audio.pause();
-      setActiveIndex(null);
-      return;
-    }
-
-    setAudioError(false);
-    audio.src = CATALOG[i].audio;
-    audio.currentTime = 0;
-    audio
-      .play()
-      .then(() => setActiveIndex(i))
-      .catch(() => {
-        // Arquivo ausente ou navegador bloqueou o autoplay.
-        setAudioError(true);
-        setActiveIndex(null);
-      });
-  };
-
   return (
     <section id="catalogo" className="py-24 px-6" style={{ background: COLORS.inkSoft }}>
       <div className="max-w-6xl mx-auto">
@@ -630,69 +592,30 @@ function Catalogo() {
             className="mt-3 max-w-xl"
             style={{ color: "rgba(var(--paper-rgb),0.7)", fontFamily: "'Work Sans', sans-serif" }}
           >
-            Catálogo dividido por estilo, do usado raro ao lançamento lacrado.
-            Clique num gênero pra ouvir uma prévia enquanto garimpa.
+            Catálogo dividido por estilo, do usado raro ao lançamento lacrado
+            — disponível na loja e no e-commerce.
           </p>
         </Reveal>
 
-        <div className="mt-10 grid md:grid-cols-[minmax(0,260px)_1fr] gap-10 items-center">
-          {/* Toca-discos */}
-          <Reveal>
-            <div className="flex flex-col items-center">
-              <Vinyl playing={activeIndex !== null} size={220} />
-              <p
-                className="text-center mt-4 text-sm min-h-[1.5em]"
-                style={{ color: COLORS.paper, fontFamily: "'Work Sans', sans-serif" }}
+        <Reveal delay={0.1}>
+          <div className="mt-8 flex flex-wrap gap-x-3 gap-y-2">
+            {CATALOG.map((c) => (
+              <span
+                key={c.label}
+                className="px-3 py-1.5 rounded-full text-xs"
+                style={{
+                  color: "rgba(var(--paper-rgb),0.7)",
+                  border: `1px solid ${COLORS.line}`,
+                  fontFamily: "'Work Sans', sans-serif",
+                }}
               >
-                {activeIndex !== null
-                  ? `Tocando: ${CATALOG[activeIndex].label}`
-                  : "Escolha um estilo ao lado"}
-              </p>
-              {audioError && (
-                <p
-                  className="text-center mt-1 text-xs"
-                  style={{ color: "rgba(var(--paper-rgb),0.5)", fontFamily: "'Work Sans', sans-serif" }}
-                >
-                  Prévia indisponível no momento.
-                </p>
-              )}
-              <audio ref={audioRef} onEnded={() => setActiveIndex(null)} />
-            </div>
-          </Reveal>
-
-          {/* Botões de gênero */}
-          <div className="grid sm:grid-cols-3 gap-4">
-            {CATALOG.map((c, i) => {
-              const isActive = activeIndex === i;
-              return (
-                <Reveal key={c.label} delay={i * 0.05}>
-                  <button
-                    onClick={() => playGenre(i)}
-                    className="w-full flex items-center gap-3 px-5 py-4 rounded-xl border text-left"
-                    style={{
-                      borderColor: isActive ? COLORS.paper : COLORS.line,
-                      background: isActive ? "rgba(var(--paper-rgb),0.1)" : "rgba(var(--paper-rgb),0.03)",
-                      transition: "background 0.25s ease, border-color 0.25s ease",
-                    }}
-                  >
-                    {isActive ? (
-                      <Pause size={18} color={COLORS.paper} />
-                    ) : (
-                      <Play size={18} color={COLORS.paper} />
-                    )}
-                    <span
-                      style={{ color: COLORS.paper, fontFamily: "'Work Sans', sans-serif", fontSize: "0.95rem" }}
-                    >
-                      {c.label}
-                    </span>
-                  </button>
-                </Reveal>
-              );
-            })}
+                {c.label}
+              </span>
+            ))}
           </div>
-        </div>
+        </Reveal>
 
-        <Reveal delay={0.3}>
+        <Reveal delay={0.2}>
           <a
             href={SITE_URL}
             target="_blank"
