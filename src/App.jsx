@@ -312,7 +312,7 @@ function Nav() {
           {open ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
-
+      
       {open && (
         <div
           className="md:hidden px-6 pb-6 flex flex-col gap-4"
