@@ -312,7 +312,7 @@ function Nav() {
           {open ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
-      
+
       {open && (
         <div
           className="md:hidden px-6 pb-6 flex flex-col gap-4"
@@ -1041,7 +1041,9 @@ function Contato() {
               Enviar pelo WhatsApp
               <Send size={16} />
             </button>
-           
+            <p className="text-xs" style={{ color: "rgba(255,251,224,0.4)", fontFamily: "'Work Sans', sans-serif" }}>
+              Ao enviar, o WhatsApp abre com sua mensagem pronta pra disparar.
+            </p>
           </form>
         </Reveal>
       </div>
@@ -1065,8 +1067,8 @@ function Fachada() {
           background: `linear-gradient(0deg, ${COLORS.ink} 0%, rgba(19,17,16,0.35) 45%, rgba(19,17,16,0.1) 100%)`,
         }}
       />
-      <Reveal>
-        <div className="absolute bottom-10 left-0 right-0 px-6 text-center">
+      <div className="absolute bottom-10 left-0 right-0 px-6 text-center">
+        <Reveal>
           <p
             style={{
               fontFamily: "'JetBrains Mono', monospace",
@@ -1088,8 +1090,8 @@ function Fachada() {
           >
             {ADDRESS_LINE}
           </h3>
-        </div>
-      </Reveal>
+        </Reveal>
+      </div>
     </section>
   );
 }
