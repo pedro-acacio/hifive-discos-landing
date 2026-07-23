@@ -61,6 +61,7 @@ const FONTS_IMPORT =
 
 const WHATSAPP_NUMBER = "5585996369906"; // +55 85 99636-9906
 const INSTAGRAM_URL = "https://www.instagram.com/hifivediscos";
+const LINKTREE_URL = "https://linktr.ee/hifivediscos";
 const SITE_URL = "https://hifivediscos.com.br";
 // Logo oficial embutida em base64 — não depende de arquivo externo.
 const LOGO_SRC =
@@ -381,6 +382,16 @@ function Nav() {
             </a>
           ))}
           <a
+            href={LINKTREE_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-1.5 text-sm"
+            style={{ color: COLORS.paper, opacity: 0.85, fontFamily: "'Work Sans', sans-serif" }}
+          >
+            Mais links
+            <ExternalLink size={13} />
+          </a>
+          <a
             href={`https://wa.me/${WHATSAPP_NUMBER}`}
             target="_blank"
             rel="noreferrer"
@@ -417,6 +428,17 @@ function Nav() {
               {l.label}
             </a>
           ))}
+          <a
+            href={LINKTREE_URL}
+            target="_blank"
+            rel="noreferrer"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-1.5"
+            style={{ color: COLORS.paper, fontFamily: "'Work Sans', sans-serif" }}
+          >
+            Mais links
+            <ExternalLink size={14} />
+          </a>
           <a
             href={`https://wa.me/${WHATSAPP_NUMBER}`}
             target="_blank"
@@ -501,8 +523,7 @@ function Hero() {
           </div>
         </Reveal>
 
-        {/* Vinil decorativo — o toca-discos funcional, com música por
-            gênero, fica na seção "O que toca por aqui" (Catálogo). */}
+        {/* Vinil decorativo — puramente visual (gira ao clicar). */}
         <Reveal delay={0.15}>
           <Vinyl playing={playing} onClick={() => setPlaying((p) => !p)} size={300} />
           <p
@@ -511,6 +532,16 @@ function Hero() {
           >
             toque no disco para {playing ? "pausar" : "tocar"}
           </p>
+          <a
+            href={LINKTREE_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center justify-center gap-2 mx-auto mt-5 px-6 py-2.5 rounded-full text-sm font-medium border w-fit"
+            style={{ borderColor: COLORS.line, color: COLORS.paper, fontFamily: "'Work Sans', sans-serif" }}
+          >
+            Mais links da Hifive
+            <ExternalLink size={15} />
+          </a>
         </Reveal>
       </div>
     </section>
@@ -1158,6 +1189,17 @@ function Footer() {
             aria-label="WhatsApp"
           >
             <MessageCircle size={16} color={COLORS.paper} />
+          </a>
+          <a
+            href={LINKTREE_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="w-9 h-9 rounded-full flex items-center justify-center"
+            style={{ background: "rgba(var(--paper-rgb),0.06)" }}
+            aria-label="Mais links"
+            title="Mais links"
+          >
+            <ExternalLink size={16} color={COLORS.paper} />
           </a>
         </div>
       </div>
